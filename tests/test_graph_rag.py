@@ -118,17 +118,3 @@ def test_load_graph_reads_valid_json():
         gr_module.GRAPH_PATH = original_path
         Path(tmp_path).unlink(missing_ok=True)
 
-
-if __name__ == "__main__":
-    test_find_direct_entity_match()
-    test_find_entity_by_partial_match()
-    test_graph_traversal_finds_connected_entities()
-    test_multi_hop_traversal()
-    test_empty_graph_returns_empty()
-    test_no_matching_entities_returns_empty()
-    test_max_chunks_limit()
-    test_direct_matches_prioritized()
-    test_no_duplicate_chunk_ids()
-    test_load_graph_returns_none_when_no_file()
-    test_load_graph_reads_valid_json()
-    print("All tests passed!")

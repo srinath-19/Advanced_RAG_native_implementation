@@ -28,7 +28,7 @@ collection = chroma.get_or_create_collection(collection_name)
 RETRIEVAL_K = 20
 FINAL_K = 10
 
-_knowledge_graph = load_graph()
+_knowledge_graph = None
 
 SYSTEM_PROMPT = """
 You are a knowledgeable, friendly assistant representing the company Insurellm.
@@ -130,6 +130,9 @@ def fetch_context_unranked(question):
 
 def fetch_graph_context(question):
     """Retrieve chunks related to the question via knowledge graph traversal."""
+    global _knowledge_graph
+    if _knowledge_graph is None:
+        _knowledge_graph = load_graph()
     if _knowledge_graph is None:
         return []
     chunk_ids = find_related_chunk_ids(question, _knowledge_graph)
