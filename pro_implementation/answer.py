@@ -5,6 +5,7 @@ from litellm import completion
 from pydantic import BaseModel, Field
 from pathlib import Path
 from tenacity import retry, wait_exponential
+from pro_implementation.graph_rag import load_graph, find_related_chunk_ids
 
 
 load_dotenv(override=True)
@@ -26,6 +27,8 @@ collection = chroma.get_or_create_collection(collection_name)
 
 RETRIEVAL_K = 20
 FINAL_K = 10
+
+_knowledge_graph = load_graph()
 
 SYSTEM_PROMPT = """
 You are a knowledgeable, friendly assistant representing the company Insurellm.
@@ -125,11 +128,27 @@ def fetch_context_unranked(question):
     return chunks
 
 
+def fetch_graph_context(question):
+    """Retrieve chunks related to the question via knowledge graph traversal."""
+    if _knowledge_graph is None:
+        return []
+    chunk_ids = find_related_chunk_ids(question, _knowledge_graph)
+    if not chunk_ids:
+        return []
+    results = collection.get(ids=chunk_ids, include=["documents", "metadatas"])
+    chunks = []
+    for doc, meta in zip(results["documents"], results["metadatas"]):
+        chunks.append(Result(page_content=doc, metadata=meta))
+    return chunks
+
+
 def fetch_context(original_question):
     rewritten_question = rewrite_query(original_question)
     chunks1 = fetch_context_unranked(original_question)
     chunks2 = fetch_context_unranked(rewritten_question)
+    graph_chunks = fetch_graph_context(original_question)
     chunks = merge_chunks(chunks1, chunks2)
+    chunks = merge_chunks(chunks, graph_chunks)
     reranked = rerank(original_question, chunks)
     return reranked[:FINAL_K]
 

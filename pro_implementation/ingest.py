@@ -7,6 +7,7 @@ from tqdm import tqdm
 from litellm import completion
 from multiprocessing import Pool
 from tenacity import retry, wait_exponential
+from pro_implementation.graph_rag import build_graph
 
 
 load_dotenv(override=True)
@@ -143,4 +144,5 @@ if __name__ == "__main__":
     documents = fetch_documents()
     chunks = create_chunks(documents)
     create_embeddings(chunks)
+    build_graph(chunks)
     print("Ingestion complete")
